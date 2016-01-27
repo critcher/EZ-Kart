@@ -91,9 +91,9 @@ endif()
 # flag project as catkin-based to distinguish if a find_package()-ed project is a catkin project
 set(voice_control_FOUND_CATKIN_PROJECT TRUE)
 
-if(NOT "/home/clayton/robo/EZ-Kart/devel/include" STREQUAL "")
+if(NOT "" STREQUAL "")
   set(voice_control_INCLUDE_DIRS "")
-  set(_include_dirs "/home/clayton/robo/EZ-Kart/devel/include")
+  set(_include_dirs "")
   foreach(idir ${_include_dirs})
     if(IS_ABSOLUTE ${idir} AND IS_DIRECTORY ${idir})
       set(include ${idir})
@@ -145,7 +145,7 @@ foreach(library ${libraries})
   endif()
 endforeach()
 
-set(voice_control_EXPORTED_TARGETS "voice_control_generate_messages_cpp;voice_control_generate_messages_lisp;voice_control_generate_messages_py")
+set(voice_control_EXPORTED_TARGETS "")
 # create dummy targets for exported code generation targets to make life of users easier
 foreach(t ${voice_control_EXPORTED_TARGETS})
   if(NOT TARGET ${t})
@@ -153,7 +153,7 @@ foreach(t ${voice_control_EXPORTED_TARGETS})
   endif()
 endforeach()
 
-set(depends "roscpp;rospy;status_monitor;message_runtime")
+set(depends "")
 foreach(depend ${depends})
   string(REPLACE " " ";" depend_list ${depend})
   # the package name of the dependency must be kept in a unique variable so that it is not overwritten in recursive calls
@@ -182,7 +182,7 @@ foreach(depend ${depends})
   list(APPEND voice_control_EXPORTED_TARGETS ${${voice_control_dep}_EXPORTED_TARGETS})
 endforeach()
 
-set(pkg_cfg_extras "voice_control-msg-extras.cmake")
+set(pkg_cfg_extras "")
 foreach(extra ${pkg_cfg_extras})
   if(NOT IS_ABSOLUTE ${extra})
     set(extra ${voice_control_DIR}/${extra})

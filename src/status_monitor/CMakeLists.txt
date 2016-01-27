@@ -6,8 +6,8 @@ project(status_monitor)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
-  std_msgs
-  message_generation
+  ez_kart_msgs
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -44,10 +44,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-    FILES
-    Status.msg
-)
+#add_message_files(
+#    FILES
+#    Status.msg
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -64,10 +64,10 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-    DEPENDENCIES
-    std_msgs
-)
+#generate_messages(
+#    DEPENDENCIES
+#    std_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -101,7 +101,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES status_monitor
-    CATKIN_DEPENDS rospy std_msgs message_runtime
+#    CATKIN_DEPENDS rospy std_msgs message_runtime voice_control
 #  DEPENDS system_lib
 )
 
