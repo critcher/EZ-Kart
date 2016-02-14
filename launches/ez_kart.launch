@@ -1,0 +1,11 @@
+<launch>
+
+  <node name="recognizer" pkg="speech_recognizer" type="recognizer.py">
+    <param name="lm" value="$(find speech_recognizer)/demo/ez_kart.lm"/>
+    <param name="dict" value="$(find speech_recognizer)/demo/ez_kart.dic"/>
+  </node>
+
+  <node name="" pkg="voice_control" type="voice_control.py">
+  </node>
+
+</launch>
