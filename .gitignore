@@ -28,6 +28,9 @@ msg/_*.py
 # qcreator stuff
 CMakeLists.txt.user
 
+devel/
+install/
+
 srv/_*.py
 *.pcd
 *.pyc
