@@ -1,0 +1,4 @@
+uint16 leftMotorPWM
+uint16 rightMotorPWM
+uint8 leftMotorDir
+uint8 rightMotorDir

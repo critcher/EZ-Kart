@@ -50,6 +50,7 @@ add_message_files(
     Command.msg
     Status.msg
     Voltmeter.msg
+    motorControl.msg
 )
 
 ## Generate services in the 'srv' folder
