@@ -3,19 +3,19 @@
 """
 recognizer.py is a wrapper for pocketsphinx.
   parameters:
-    ~lm - filename of language model
-    ~dict - filename of dictionary
-    ~mic_name - set the pulsesrc device name for the microphone input.
+    /recognizer/lm - filename of language model
+    /recognizer/dict - filename of dictionary
+    /recognizer/mic_name - set the pulsesrc device name for the microphone input.
                 e.g. a Logitech G35 Headset has the following device name: alsa_input.usb-Logitech_Logitech_G35_Headset-00-Headset_1.analog-mono
                 To list audio device info on your machine, in a terminal type: pacmd list-sources
   publications:
-    ~output (std_msgs/String) - text output
+    /recognizer/output (std_msgs/String) - text output
   services:
-    ~start (std_srvs/Empty) - start speech recognition
-    ~stop (std_srvs/Empty) - stop speech recognition
+    /recognizer/start (std_srvs/Empty) - start speech recognition
+    /recognizer/stop (std_srvs/Empty) - stop speech recognition
 """
 
-import roslib; roslib.load_manifest('pocketsphinx')
+import roslib; roslib.load_manifest('speech_recognizer')
 import rospy
 
 import pygtk
@@ -40,9 +40,9 @@ class recognizer(object):
         # Start node
         rospy.init_node("recognizer")
 
-        self._device_name_param = "~mic_name"  # Find the name of your microphone by typing pacmd list-sources in the terminal
-        self._lm_param = "~lm"
-        self._dic_param = "~dict"
+        self._device_name_param = "/recognizer/mic_name"  # Find the name of your microphone by typing pacmd list-sources in the terminal
+        self._lm_param = "/recognizer/lm"
+        self._dic_param = "/recognizer/dict"
 
         # Configure mics with gstreamer launch config
         if rospy.has_param(self._device_name_param):
@@ -50,11 +50,11 @@ class recognizer(object):
             self.device_index = self.pulse_index_from_name(self.device_name)
             self.launch_config = "pulsesrc device=" + str(self.device_index)
             rospy.loginfo("Using: pulsesrc device=%s name=%s", self.device_index, self.device_name)
-        elif rospy.has_param('~source'):
+        elif rospy.has_param('/recognizer/source'):
             # common sources: 'alsasrc'
-            self.launch_config = rospy.get_param('~source')
+            self.launch_config = rospy.get_param('/recognizer/source')
         else:
-            self.launch_config = 'gconfaudiosrc'
+            self.launch_config = 'pulsesrc'
 
         rospy.loginfo("Launch config: %s", self.launch_config)
 
@@ -65,9 +65,9 @@ class recognizer(object):
         # Configure ROS settings
         self.started = False
         rospy.on_shutdown(self.shutdown)
-        self.pub = rospy.Publisher('~output', String)
-        rospy.Service("~start", Empty, self.start)
-        rospy.Service("~stop", Empty, self.stop)
+        self.pub = rospy.Publisher('/recognizer/output', String)
+        rospy.Service("/recognizer/start", Empty, self.start)
+        rospy.Service("/recognizer/stop", Empty, self.stop)
 
         if rospy.has_param(self._lm_param) and rospy.has_param(self._dic_param):
             self.start_recognizer()
