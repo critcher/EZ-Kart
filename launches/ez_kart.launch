@@ -8,4 +8,12 @@
   <node name="" pkg="voice_control" type="voice_control.py">
   </node>
 
+  <group>
+  	<include file="$(find uvc_camera)/launch/camera_node.launch" />
+  	<include file="$(find apriltags_ros)/launch/example.launch" />
+
+
+  	<node name="" pkg="tracking" type="tracking.py"></node>
+  </group>
+
 </launch>
