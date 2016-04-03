@@ -5,8 +5,9 @@
     <param name="dict" value="$(find speech_recognizer)/demo/ez_kart.dic"/>
   </node>
 
-  <node name="" pkg="voice_control" type="voice_control.py">
-  </node>
+  <node name="" pkg="voice_control" type="voice_control.py"></node>
+
+  <node name="" pkg="status_monitor" type="status_monitor.py"></node>
 
   <group>
   	<include file="$(find uvc_camera)/launch/camera_node.launch" />
