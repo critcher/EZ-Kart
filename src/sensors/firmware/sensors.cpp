@@ -1,6 +1,7 @@
 #include <ros.h>
 #include <ez_kart_msgs/Voltmeter.h>
 #include <ez_kart_msgs/Status.h>
+#include <ez_kart_msgs/motorControl.h>
 #include <sensor_msgs/Range.h>
 #include <std_msgs/Int16.h>
 
@@ -14,6 +15,10 @@
 #define OBSTACLE_PIN 3
 #define BATTERY_PIN 4
 #define SERVO_PIN 5
+#define LEFT_MOTOR_PWM 9
+#define RIGHT_MOTOR_PWM 10
+#define LEFT_MOTOR_DIR 11
+#define RIGHT_MOTOR_DIR 12
 
 #define VOLTAGE_SCALE .07666
 #define DISTANCE_SCALE .005
@@ -35,8 +40,16 @@ void servoCb(const std_msgs::Int16& msg) {
   servo.write(msg.data);
 }
 
+void motorCb(const ez_kart_msgs::motorControl& msg) {
+  digitalWrite(LEFT_MOTOR_DIR, msg.leftMotorDir);
+  digitalWrite(RIGHT_MOTOR_DIR, msg.rightMotorDir);
+  analogWrite(RIGHT_MOTOR_PWM, msg.rightMotorPWM);
+  analogWrite(LEFT_MOTOR_PWM, msg.leftMotorPWM);
+}
+
 ros::Subscriber<ez_kart_msgs::Status> statusSub("status", &statusCb );
 ros::Subscriber<std_msgs::Int16> servoSub("servo", &servoCb );
+ros::Subscriber<ez_kart_msgs::motorControl> motorSub("ezKartControl", &motorCb );
 
 ez_kart_msgs::Voltmeter voltage_msg;
 ros::Publisher voltage_pub("voltage", &voltage_msg);
@@ -60,6 +73,7 @@ void setup()
   servo.attach(SERVO_PIN);
   updateLEDs(false, false, false);
   nh.initNode();
+  nh.subscribe(motorSub);
   nh.subscribe(statusSub);
   nh.subscribe(servoSub);
   nh.advertise(voltage_pub);
@@ -73,5 +87,5 @@ void loop()
   voltage_pub.publish(&voltage_msg);
   distance_pub.publish(&distance_msg);
   nh.spinOnce();
-  delay(10);
+  delay(20);
 }
