@@ -1,29 +1,34 @@
-#!usr/bin/env python
+#!/usr/bin/env python
 
 import rospy
 
-from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import Pose2D
 from ez_kart_msgs.msg import Status
 from ez_kart_msgs.msg import Voltmeter
 from ez_kart_msgs.msg import Command
 from sensor_msgs.msg import Range
+from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
 
 
 class monitoring:
 
 	def __init__(self):
 		self.msg = Status()
+		self.soundhandle = SoundClient()
 		self.msg.obstacle = False
-		self.pub = rospy.Publisher('status', Status)
+		self.pub = rospy.Publisher('status', Status, queue_size=6)
 		self.last_received_time = rospy.get_rostime()
-		self.timer = rospy.Timer(rospy.Duration(5), timer_callback)
-		rospy.Subscriber('/tag_detections_pose', PoseArray, self.lostCallback)
+		self.timer = rospy.Timer(rospy.Duration(5), self.timerCallback)
+		rospy.Subscriber('/poses', Pose2D, self.lostCallback)
 		rospy.Subscriber('/sensor_msgs/Range', Range , self.obstacleCallback)
 		rospy.Subscriber('/voltage', Voltmeter, self.voltageCallback)
 		rospy.Subscriber('/commands', Command, self.voiceCallback)
 
 	def lostCallback(self, msg):
-		self.last_received_time = time_received
+		self.last_received_time = rospy.get_rostime()
+		self.msg.lost = False
+		self.pub.publish(self.msg)
 
 	def voiceCallback(self, msg):
 		if (msg.command == Command.FOLLOW):
@@ -36,28 +41,30 @@ class monitoring:
 		self.pub.publish(self.msg)
 
 	def obstacleCallback(self, msg):
-		if (self.msg.following || self.msg.obstacle):
+		if (self.msg.following or self.msg.obstacle):
 			if (msg.range < .4): #tweak this
 				self.msg.obstacle = True
-				self.msg.following = False
+				self.soundhandle.say("Obstacle in the way!")
 			else:
 				self.msg.obstacle = False
-				self.msg.following True
 			self.pub.publish(self.msg)
 
 	def voltageCallback(self, msg):
 		if (msg.voltage < 11.2):
-			self.msg.low_voltage = True
-			self.msg.message = "Low battery"
+			if (self.msg.low_voltage == False):
+				self.soundhandle.say("Low battery!")
+				self.msg.low_voltage = True
+			else:
+				self.msg.low_voltage = False
 			self.pub.publish(self.msg)
 
-	def timer_callback(event):
-		print 'Timer called at ' + str(event.current_real)
-		print 'Last received time ' + str(self.last_received_time)
-		if (event.current_real - self.last_received_time > 5):
+	def timerCallback(self, event):
+		rospy.loginfo('Timer called at ' + str(event.current_real))
+		rospy.loginfo('Last received time ' + str(self.last_received_time))
+		if (event.current_real - self.last_received_time > rospy.Duration(5)):
 			self.msg.lost = True
-			self.msg.following = False
-			self.pub.publish(self.msg)
+			self.soundhandle.say("Robot lost!")
+		self.pub.publish(self.msg)
 
 
 if __name__ == "__main__":
@@ -66,4 +73,5 @@ if __name__ == "__main__":
 	try:
 		rospy.spin()
 	except KeyboardInterrupt:
+		soundhandle.stopAll()
 		print "Shutting down status monitor"

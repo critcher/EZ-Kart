@@ -7,7 +7,6 @@ project(status_monitor)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   ez_kart_msgs
-  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions
