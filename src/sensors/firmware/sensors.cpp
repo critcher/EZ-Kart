@@ -12,11 +12,11 @@
 #define ULTRASONIC_PIN A2
 
 #define LOST_PIN 2
-#define OBSTACLE_PIN 3
+#define OBSTACLE_PIN 7
 #define BATTERY_PIN 4
 #define SERVO_PIN 5
-#define LEFT_MOTOR_PWM 9
-#define RIGHT_MOTOR_PWM 10
+#define LEFT_MOTOR_PWM 6
+#define RIGHT_MOTOR_PWM 3
 #define LEFT_MOTOR_DIR 11
 #define RIGHT_MOTOR_DIR 12
 
@@ -45,6 +45,7 @@ void motorCb(const ez_kart_msgs::motorControl& msg) {
   digitalWrite(RIGHT_MOTOR_DIR, msg.rightMotorDir);
   analogWrite(RIGHT_MOTOR_PWM, msg.rightMotorPWM);
   analogWrite(LEFT_MOTOR_PWM, msg.leftMotorPWM);
+  analogWrite(OBSTACLE_PIN, msg.rightMotorPWM);
 }
 
 ros::Subscriber<ez_kart_msgs::Status> statusSub("status", &statusCb );
@@ -65,13 +66,26 @@ float getDistance() {
 	return analogRead(ULTRASONIC_PIN) * DISTANCE_SCALE;
 }
 
+void motorSetup() {
+  pinMode(LEFT_MOTOR_PWM, OUTPUT);
+  pinMode(LEFT_MOTOR_DIR, OUTPUT);
+  pinMode(RIGHT_MOTOR_PWM, OUTPUT);
+  pinMode(RIGHT_MOTOR_DIR, OUTPUT);
+  digitalWrite(LEFT_MOTOR_DIR, 0);
+  digitalWrite(RIGHT_MOTOR_DIR, 0);
+  analogWrite(RIGHT_MOTOR_PWM, 0);
+  analogWrite(LEFT_MOTOR_PWM, 0);
+}
+
 void setup()
 {
   pinMode(LOST_PIN, OUTPUT);
   pinMode(BATTERY_PIN, OUTPUT);
   pinMode(OBSTACLE_PIN, OUTPUT);
+  motorSetup();
   servo.attach(SERVO_PIN);
   updateLEDs(false, false, false);
+  nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(motorSub);
   nh.subscribe(statusSub);

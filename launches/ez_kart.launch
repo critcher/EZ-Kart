@@ -19,4 +19,11 @@
   	<node name="" pkg="tracking" type="tracking.py"></node>
   </group>
 
+  <node name="serial_node" pkg="rosserial_python" type="serial_node.py">
+  	<param name="port" value="/dev/ttyACM0"/>
+  	<param name="baud" value="115200"/>
+  </node>
+
+  <node name="" pkg="controls" type="controller" />
+
 </launch>
