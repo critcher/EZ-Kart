@@ -29,7 +29,7 @@ class Control {
     float distError; 
     float distDeriv; 
     float distIntegral;
-    float maxPWM; 
+    int maxPWM; 
     bool lost; 
     bool obstacle; 
     bool low_voltage; 
@@ -49,12 +49,11 @@ class Control {
 };
 
 
-
 Control::Control() {
-  distkP = 100; 
+  distkP = 200; //500
   distkI = 0; 
   distkD = 0;
-  anglekP = 100; 
+  anglekP = 125; 
   anglekI = 0; 
   anglekD = 0; 
   angleError = 0; 
@@ -66,7 +65,7 @@ Control::Control() {
   kartX = 0; 
   kartY = 0; 
   kartTheta = 0;
-  maxPWM = 127;  
+  maxPWM = 100;   
 
   timer = n.createTimer(ros::Duration(0.1), &Control::runPID,this); 
   poseSub = n.subscribe("poses", 1000, &Control::poseSubCallback, this);
@@ -94,7 +93,7 @@ void Control::runPID(const ros::TimerEvent&) {
   Assuming 0 degrees is straight forward*/
 
   float dist = sqrt(pow(kartX,2) + pow(kartY,2)); 
-  float newDistError = 0.6 - dist;
+  float newDistError = 1 - dist;
   distDeriv = (newDistError - distError)/0.1; 
   distError = newDistError;
   distIntegral = (distError * 0.1) + distIntegral;
@@ -104,65 +103,132 @@ void Control::runPID(const ros::TimerEvent&) {
   angleError = newAngleError;  
   angleIntegral = (angleError * 0.1) + angleIntegral;
 
+  //ROS_INFO("Distance Error %f", distError);
+  //ROS_INFO("Angle Error %f", angleError);
 
 
   //Forward = 1; Backward = 0; 
   ez_kart_msgs::motorControl ezKartControl;
+  float R_controlAngle = 0;
+  float L_controlAngle = 0; 
+  float R_controlDist = 0;
+  float L_controlDist = 0;
+  float L_control = 0;
+  float R_control = 0; 
 
   /*Angle offset.*/
-  if (abs(0 - angleError) > 0.01) {
-    if(angleError > 0) { /*user to the left. Want kart to turn right*/
-      ezKartControl.leftMotorDir = 1; /*left forward*/
-      ezKartControl.rightMotorDir = 0; /*right reverse*/
+  /*if (abs(0 - angleError) > 0.12) {
+    ROS_INFO("*****ANGLE PID %f*****", angleError);
+    if(angleError > 0) { //user to the left. Want kart to turn right
+      ezKartControl.leftMotorDir = 1; //left forward
+      ezKartControl.rightMotorDir = 0; //right reverse
     } 
-    else { /*user to the right, want kart to turn left*/
-      ezKartControl.leftMotorDir = 0; /*left reverse*/
-      ezKartControl.rightMotorDir = 1; /*right forward*/
-    }
+    else { //user to the right, want kart to turn left
+      ezKartControl.leftMotorDir = 0; //left reverse
+      ezKartControl.rightMotorDir = 1; //right forward
+    }*/
 
-    float control = floor(abs((angleError * anglekP) + (angleIntegral * anglekI) + (angleDeriv * anglekD))); 
-    if (control < 0) {
+
+    L_controlAngle = floor(((angleError * anglekP) + (angleIntegral * anglekI) + (angleDeriv * anglekD))); 
+    R_controlAngle = -L_controlAngle; 
+    /*if (abs(0- angleError) > 0.12)
+    {//user to the left. Want kart to turn right
+      R_controlAngle = -R_controlAngle;
+      L_controlAngle = L_controlAngle; 
+    }
+    else
+    {//user to the right, want kart to turn left
+      R_controlAngle = R_controlAngle;
+      L_controlAngle = -L_controlAngle;
+    }
+    /*if (control < 0) {
       ezKartControl.leftMotorPWM = 0; 
       ezKartControl.rightMotorPWM = 0; 
     }
-    else if (0 < control && control < maxPWM) {
+    else if (0 < control && control < maxAnglePWM) {
       ezKartControl.leftMotorPWM = control; 
       ezKartControl.rightMotorPWM = control;
-    } else if (control > maxPWM) {
-      ezKartControl.leftMotorPWM = maxPWM; 
-      ezKartControl.rightMotorPWM = maxPWM;      
+    } else if (control > maxAnglePWM) {
+      ezKartControl.leftMotorPWM = maxAnglePWM; 
+      ezKartControl.rightMotorPWM = maxAnglePWM;      
     }
   } 
   /*There is some distance offset but no angle offset*/
-  else {
+  /*else {
     if (distError < 0) {
-      /*Kart further away from user than 2ft (0.6m) */
-      ezKartControl.leftMotorDir = 0; /* left and right reverse*/
+      //Kart further away from user than 3.33ft (1m) 
+      ROS_INFO("*****DISTANCE PID %f*****", distError);
+      ezKartControl.leftMotorDir = 0; // left and right reverse
       ezKartControl.rightMotorDir = 0; 
     } else {
-      /*Kart close to the user than 2ft (0.6m) */
-      ezKartControl.leftMotorDir = 1; /* left and right forward*/
+      //Kart close to the user than 3.33ft (1m) 
+      ezKartControl.leftMotorDir = 1; //left and right forward
       ezKartControl.rightMotorDir = 1;
-    }
+    }*/
  
-    float control = floor(abs((distError * distkP) + (distIntegral * distkI) + (distDeriv * distkD))); 
-   
-    if (control < 0) {
+    L_controlDist = floor(((distError * distkP) + (distIntegral * distkI) + (distDeriv * distkD))); 
+    R_controlDist = L_controlDist;  
+    
+    /*if (distError < 0)
+    {
+      L_controlDist = -L_controlDist; 
+      R_controlDist = -R_controlDist; 
+    }
+    /*if (control < 0) {
       ezKartControl.leftMotorPWM = 0; 
       ezKartControl.rightMotorPWM = 0; 
-    } else if (0 < control && control < maxPWM) {
-      ezKartControl.leftMotorPWM = control; 
-      ezKartControl.rightMotorPWM = control;
-    }
-    else if (control > maxPWM) {
-      ezKartControl.leftMotorPWM = maxPWM; 
-      ezKartControl.rightMotorPWM = maxPWM;      
-    }
-  }
+    } else if (0 < control && control < maxDistPWM) {
+        ezKartControl.leftMotorPWM = control; 
+        ezKartControl.rightMotorPWM = control;
+      }
+      else if (control > maxDistPWM) {
+        ezKartControl.leftMotorPWM = maxDistPWM; 
+        ezKartControl.rightMotorPWM = maxDistPWM;      
+      }
+    }*/
 
-  if (!lost && !obstacle && following) {
+  L_control = L_controlDist + L_controlAngle;
+  R_control = R_controlDist +  R_controlAngle; 
+
+  ezKartControl.rightMotorDir = R_control >= 0; 
+  ezKartControl.leftMotorDir = L_control >= 0; 
+
+  if (abs(R_control) > maxPWM)
+  {
+    R_control = maxPWM; 
+  }
+  if (abs(L_control) > maxPWM)
+  {
+    L_control = maxPWM; 
+  }
+  ezKartControl.rightMotorPWM = abs(R_control); 
+  ezKartControl.leftMotorPWM = abs(L_control);
+
+
+
+  
+  /*if (control < 0) {
+      ezKartControl.leftMotorPWM = 0; 
+      ezKartControl.rightMotorPWM = 0; 
+    } else if (0 < control && control < maxDistPWM) {
+        ezKartControl.leftMotorPWM = control; 
+        ezKartControl.rightMotorPWM = control;
+      }
+      else if (control > maxDistPWM) {
+        ezKartControl.leftMotorPWM = maxDistPWM; 
+        ezKartControl.rightMotorPWM = maxDistPWM;      
+      }*/
+
+  if (!lost && !obstacle && following)
+  {
     controlsPub.publish(ezKartControl); 
-  } else {
+  } 
+  else if (!lost && obstacle && following && ezKartControl.leftMotorDir == 0 && ezKartControl.rightMotorDir == 0)
+  {
+    controlsPub.publish(ezKartControl);
+  }
+  else  
+  {
     ezKartControl.leftMotorPWM = 0;
     ezKartControl.rightMotorPWM = 0; 
     ezKartControl.leftMotorDir = 0;
