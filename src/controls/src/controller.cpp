@@ -50,10 +50,10 @@ class Control {
 
 
 Control::Control() {
-  distkP = 200; //500
+  distkP = 150; //500
   distkI = 0; 
   distkD = 0;
-  anglekP = 125; 
+  anglekP = 100; 
   anglekI = 0; 
   anglekD = 0; 
   angleError = 0; 
@@ -129,7 +129,7 @@ void Control::runPID(const ros::TimerEvent&) {
     }*/
 
 
-    L_controlAngle = floor(((angleError * anglekP) + (angleIntegral * anglekI) + (angleDeriv * anglekD))); 
+    L_controlAngle = -floor(((angleError * anglekP) + (angleIntegral * anglekI) + (angleDeriv * anglekD))); 
     R_controlAngle = -L_controlAngle; 
     /*if (abs(0- angleError) > 0.12)
     {//user to the left. Want kart to turn right

@@ -24,6 +24,6 @@
   	<param name="baud" value="115200"/>
   </node>
 
-  <node name="" pkg="controls" type="controller" />
+  <node name="" pkg="controls" type="controller" output="screen" />
 
 </launch>

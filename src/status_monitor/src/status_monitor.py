@@ -15,7 +15,7 @@ class monitoring:
 
 	def __init__(self):
 		self.msg = Status()
-		self.soundhandle = SoundClient()
+		#self.soundhandle = SoundClient()
 		self.msg.obstacle = False
 		self.msg.following = False
 		self.pub = rospy.Publisher('status', Status, queue_size=6)
@@ -45,7 +45,7 @@ class monitoring:
 		if (self.msg.following or self.msg.obstacle):
 			if (msg.range < .9): #tweak this
 				self.msg.obstacle = True
-				self.soundhandle.say("Obstacle in the way!")
+				#self.soundhandle.say("Obstacle in the way!")
 			else:
 				self.msg.obstacle = False
 			self.pub.publish(self.msg)
@@ -54,18 +54,20 @@ class monitoring:
 		# TODO maybe find out real low voltage?
 		if (msg.voltage < 11.2):
 			if (self.msg.low_voltage == False):
-				self.soundhandle.say("Low battery!")
+				#self.soundhandle.say("Low battery!")
 				self.msg.low_voltage = True
-			else:
-				self.msg.low_voltage = False
-			self.pub.publish(self.msg)
+		else:
+			self.msg.low_voltage = False
+		self.pub.publish(self.msg)
 
 	def timerCallback(self, event):
 		rospy.loginfo('Timer called at ' + str(event.current_real))
 		rospy.loginfo('Last received time ' + str(self.last_received_time))
 		if (event.current_real - self.last_received_time > rospy.Duration(1)):
+			# change to repeat every 5 seconds or so?
+			#if (self.msg.lost == False):
+				#self.soundhandle.say("Robot lost!")
 			self.msg.lost = True
-			self.soundhandle.say("Robot lost!")
 		self.pub.publish(self.msg)
 
 
@@ -75,5 +77,5 @@ if __name__ == "__main__":
 	try:
 		rospy.spin()
 	except KeyboardInterrupt:
-		soundhandle.stopAll()
+		#soundhandle.stopAll()
 		print "Shutting down status monitor"

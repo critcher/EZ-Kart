@@ -33,7 +33,7 @@ void updateLEDs(bool lost, bool obstacle, bool battery) {
 }
 
 void statusCb(const ez_kart_msgs::Status& msg) {
-  updateLEDs(msg.lost, msg.obstacle,msg.low_voltage);
+  updateLEDs(msg.lost, msg.obstacle, msg.low_voltage);
 }
 
 void servoCb(const std_msgs::Int16& msg) {
@@ -45,7 +45,7 @@ void motorCb(const ez_kart_msgs::motorControl& msg) {
   digitalWrite(RIGHT_MOTOR_DIR, msg.rightMotorDir);
   analogWrite(RIGHT_MOTOR_PWM, msg.rightMotorPWM);
   analogWrite(LEFT_MOTOR_PWM, msg.leftMotorPWM);
-  analogWrite(OBSTACLE_PIN, msg.rightMotorPWM);
+  //analogWrite(OBSTACLE_PIN, msg.rightMotorPWM);
 }
 
 ros::Subscriber<ez_kart_msgs::Status> statusSub("status", &statusCb );
