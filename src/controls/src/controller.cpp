@@ -50,7 +50,7 @@ class Control {
 
 
 Control::Control() {
-  distkP = 250; //250
+  distkP = 180; //250
   distkI = 0; 
   distkD = 50; //-100
   anglekP = 120; //150
