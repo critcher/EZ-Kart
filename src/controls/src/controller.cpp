@@ -50,12 +50,12 @@ class Control {
 
 
 Control::Control() {
-  distkP = 150; //500
+  distkP = 250; //250
   distkI = 0; 
-  distkD = 0;
-  anglekP = 100; 
+  distkD = 50; //-100
+  anglekP = 120; //150
   anglekI = 0; 
-  anglekD = 0; 
+  anglekD = 20; //-150
   angleError = 0; 
   angleDeriv = 0; 
   angleIntegral = 0; 
@@ -65,7 +65,7 @@ Control::Control() {
   kartX = 0; 
   kartY = 0; 
   kartTheta = 0;
-  maxPWM = 100;   
+  maxPWM = 175;   
 
   timer = n.createTimer(ros::Duration(0.1), &Control::runPID,this); 
   poseSub = n.subscribe("poses", 1000, &Control::poseSubCallback, this);

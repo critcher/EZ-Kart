@@ -65,7 +65,7 @@ class recognizer(object):
         # Configure ROS settings
         self.started = False
         rospy.on_shutdown(self.shutdown)
-        self.pub = rospy.Publisher('/recognizer/output', String)
+        self.pub = rospy.Publisher('/recognizer/output', String, queue_size=1)
         rospy.Service("/recognizer/start", Empty, self.start)
         rospy.Service("/recognizer/stop", Empty, self.stop)
 

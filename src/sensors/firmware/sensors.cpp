@@ -23,6 +23,8 @@
 #define VOLTAGE_SCALE .07666
 #define DISTANCE_SCALE .005
 
+int counter;
+
 ros::NodeHandle nh;
 Servo servo;
 
@@ -79,6 +81,7 @@ void motorSetup() {
 
 void setup()
 {
+  counter = 0;
   pinMode(LOST_PIN, OUTPUT);
   pinMode(BATTERY_PIN, OUTPUT);
   pinMode(OBSTACLE_PIN, OUTPUT);
@@ -96,10 +99,13 @@ void setup()
 
 void loop()
 {
-  voltage_msg.voltage = getVoltage();
+  if (counter % 100 == 0) {
+    voltage_msg.voltage = getVoltage();
+    voltage_pub.publish(&voltage_msg);
+  }
+  counter++;
   distance_msg.range = getDistance();
-  voltage_pub.publish(&voltage_msg);
   distance_pub.publish(&distance_msg);
   nh.spinOnce();
-  delay(20);
+  delay(1);
 }

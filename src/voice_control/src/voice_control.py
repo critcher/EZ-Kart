@@ -13,7 +13,7 @@ class voice_control:
 
     def __init__(self):
         self.msg = Command()
-        self.pub_ = rospy.Publisher('commands', Command)
+        self.pub_ = rospy.Publisher('commands', Command, queue_size=1)
         rospy.Subscriber('recognizer/output', String, self.speechCallback)
 
         r = rospy.Rate(10.0)
