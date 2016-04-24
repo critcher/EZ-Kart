@@ -23,10 +23,12 @@ class Control {
     float kartX; 
     float kartY; 
     float kartTheta; 
-    float angleError; 
+    float angleError;
+    float newAngleError; 
     float angleDeriv; 
     float angleIntegral; 
     float distError; 
+    float newDistError; 
     float distDeriv; 
     float distIntegral;
     int maxPWM; 
@@ -53,9 +55,9 @@ Control::Control() {
   distkP = 180; //250
   distkI = 0; 
   distkD = 50; //-100
-  anglekP = 120; //150
+  anglekP = 120; //120
   anglekI = 0; 
-  anglekD = 20; //-150
+  anglekD = 20; //20
   angleError = 0; 
   angleDeriv = 0; 
   angleIntegral = 0; 
@@ -65,7 +67,7 @@ Control::Control() {
   kartX = 0; 
   kartY = 0; 
   kartTheta = 0;
-  maxPWM = 175;   
+  maxPWM = 60;   
 
   timer = n.createTimer(ros::Duration(0.1), &Control::runPID,this); 
   poseSub = n.subscribe("poses", 1000, &Control::poseSubCallback, this);
@@ -77,6 +79,15 @@ void Control::poseSubCallback(const geometry_msgs::Pose2D& msg) {
   kartX = msg.x;
   kartY = msg.y; 
   kartTheta = msg.theta; 
+  float dist = sqrt(pow(kartX,2) + pow(kartY,2)); 
+  distError = newDistError;
+  newDistError = 1.0 - dist;
+  angleError = newAngleError;
+  newAngleError = 0 - kartTheta;
+  //ROS_INFO("Distance Error %f", distError);
+  //ROS_INFO("Angle Error %f", (newAngleError - angleError)/0.1);
+  
+
 }
 
 void Control::statusSubCallback( const ez_kart_msgs::Status &msg) {
@@ -92,19 +103,16 @@ void Control::runPID(const ros::TimerEvent&) {
   I.e. correct for angle offset first, then distance. 
   Assuming 0 degrees is straight forward*/
 
-  float dist = sqrt(pow(kartX,2) + pow(kartY,2)); 
-  float newDistError = 1 - dist;
+  
   distDeriv = (newDistError - distError)/0.1; 
-  distError = newDistError;
   distIntegral = (distError * 0.1) + distIntegral;
 
-  float newAngleError = 0 - kartTheta;
+  
   angleDeriv = (newAngleError - angleError)/0.1;
-  angleError = newAngleError;  
+    
   angleIntegral = (angleError * 0.1) + angleIntegral;
 
-  //ROS_INFO("Distance Error %f", distError);
-  //ROS_INFO("Angle Error %f", angleError);
+
 
 
   //Forward = 1; Backward = 0; 
@@ -169,6 +177,17 @@ void Control::runPID(const ros::TimerEvent&) {
     L_controlDist = floor(((distError * distkP) + (distIntegral * distkI) + (distDeriv * distkD))); 
     R_controlDist = L_controlDist;  
     
+    if (L_controlDist >= maxPWM)
+    {
+      L_controlDist = maxPWM;
+      R_controlDist = maxPWM;
+    }
+    if (L_controlDist <= -maxPWM)
+    {
+      L_controlDist = -maxPWM;
+      R_controlDist = -maxPWM; 
+    }
+
     /*if (distError < 0)
     {
       L_controlDist = -L_controlDist; 
@@ -193,14 +212,14 @@ void Control::runPID(const ros::TimerEvent&) {
   ezKartControl.rightMotorDir = R_control >= 0; 
   ezKartControl.leftMotorDir = L_control >= 0; 
 
-  if (abs(R_control) > maxPWM)
+  /*if (abs(R_control) > maxPWM)
   {
     R_control = maxPWM; 
   }
   if (abs(L_control) > maxPWM)
   {
     L_control = maxPWM; 
-  }
+  }*/
   ezKartControl.rightMotorPWM = abs(R_control); 
   ezKartControl.leftMotorPWM = abs(L_control);
 

@@ -20,7 +20,7 @@ class monitoring:
 		self.msg.following = False
 		self.pub = rospy.Publisher('status', Status, queue_size=1)
 		self.last_received_time = rospy.get_rostime()
-		self.timer = rospy.Timer(rospy.Duration(.1), self.timerCallback)
+		self.timer = rospy.Timer(rospy.Duration(.3), self.timerCallback)
 		self.timer2 = rospy.Timer(rospy.Duration(10), self.speechCallback)
 		rospy.Subscriber('/poses', Pose2D, self.lostCallback)
 		rospy.Subscriber('/ultrasonic_range', Range , self.obstacleCallback)
@@ -60,7 +60,7 @@ class monitoring:
 		self.pub.publish(self.msg)
 
 	def timerCallback(self, event):
-		if (event.current_real - self.last_received_time > rospy.Duration(1)):
+		if (event.current_real - self.last_received_time > rospy.Duration(.3)):
 			self.msg.lost = True
 		self.pub.publish(self.msg)
 
